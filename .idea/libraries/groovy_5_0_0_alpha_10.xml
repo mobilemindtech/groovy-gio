@@ -1,0 +1,72 @@
+<component name="libraryTable">
+  <library name="groovy-5.0.0.alpha-10">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/ant-junit-1.10.15.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-docgenerator-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jquery-3.7.1.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jackson-dataformat-yaml-2.17.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-groovydoc-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-yaml-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-xml-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/xstream-1.4.20.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/javaparser-core-3.26.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-dateutil-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-sql-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-ant-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/ant-1.10.15.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-jupiter-api-5.11.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-platform-engine-1.11.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/gpars-1.2.1.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jansi-2.4.1.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-nio-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-contracts-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-4.13.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/ivy-2.5.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-templates-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jcommander-1.82.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-testng-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-cli-commons-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-astbuilder-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-json-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/slf4j-api-2.0.16.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jackson-annotations-2.17.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-jmx-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jackson-dataformat-toml-2.17.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/commons-cli-1.9.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-typecheckers-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-groovysh-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/mxparser-1.2.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jsr166y-1.7.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/hamcrest-core-1.3.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jline-2.14.6.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/testng-7.10.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-toml-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-cli-picocli-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jackson-core-2.17.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/ant-launcher-1.10.15.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-jupiter-engine-5.11.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-platform-commons-1.11.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-servlet-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-macro-library-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-swing-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-test-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/multiverse-core-0.7.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-macro-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/junit-platform-launcher-1.11.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-jsr223-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/snakeyaml-2.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/jackson-databind-2.17.2.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/opentest4j-1.3.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/org.abego.treelayout.core-1.0.3.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/ant-antlr-1.10.15.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-ginq-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-test-junit5-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-console-5.0.0-alpha-10.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/qdox-2.1.0.jar!/" />
+      <root url="jar://$USER_HOME$/.sdkman/candidates/groovy/5.0.0-alpha-10/lib/groovy-datetime-5.0.0-alpha-10.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
