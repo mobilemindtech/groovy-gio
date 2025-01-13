@@ -1,8 +1,6 @@
 package gio
 
 import gio.core.GIOException
-import gio.core.Monad
-import gio.core.Option
 import gio.core.Try
 
 class ForM {
