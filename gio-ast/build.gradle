@@ -1,0 +1,21 @@
+plugins {
+    id 'groovy'
+    id 'java-library'
+}
+
+group = 'gio.ast'
+version = '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation libs.groovy
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
