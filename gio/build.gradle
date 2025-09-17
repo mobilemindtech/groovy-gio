@@ -11,7 +11,7 @@ plugins {
     id 'java-library'
 }
 
-group = 'gio'
+group = 'groovy.io'
 version = '0.1'
 
 

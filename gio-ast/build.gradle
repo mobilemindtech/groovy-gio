@@ -3,7 +3,7 @@ plugins {
     id 'java-library'
 }
 
-group = 'gio.ast'
+group = 'groovy.io'
 version = '0.1'
 
 repositories {
