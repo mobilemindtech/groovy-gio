@@ -1,5 +1,5 @@
 
 
-rootProject.name = 'gio'
+rootProject.name = 'groovy-io'
 
 include 'gio', 'gio-ast'

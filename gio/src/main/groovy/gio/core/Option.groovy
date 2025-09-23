@@ -8,26 +8,31 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
 
     abstract T get();
 
-    T getValue() { get() }
-
     abstract boolean isEmpty()
 
     abstract boolean isNonEmpty()
 
-    T getOrNull() {
-        if(nonEmpty) value else null
-    }
+    boolean isNone() { isEmpty() }
 
-    T or(T v){
-        if(nonEmpty ) value else v
-    }
+    boolean isSome() { isNonEmpty() }
+
+    T getValue() { get() }
+
+    T getOrNull() { if(nonEmpty) value else null }
+
+    T or(T v){ if(nonEmpty) value else v }
+
+
+    Option<T> orThen(final T value) { isSome() ? this : of(value) }
 
     Option<T> orElse(Option<T> v){
         if(nonEmpty ) this else v
     }
 
+    Option<T> orElse(final Closure<Option<T>> f) { isSome() ? this : f() }
+
     Option<T> orElseF(Closure<T> c){
-        if(nonEmpty ) this else of(c())
+        if(nonEmpty) this else of(c())
     }
 
     void foreach(Consumer<T> f){
@@ -50,6 +55,16 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
         alwaysFn?.call()
         this
     }
+
+    Option<T> filter(Closure<Boolean> f){
+        if(nonEmpty && f(value)) this else ofNone()
+    }
+
+    Option<T> throwIfEmpty(String msg = "required value") {
+        if (empty) throw new RuntimeException(msg)
+        this
+    }
+
 
     def <A> Option<A> flatMap(Function<T, Option<A>> f){
         if(nonEmpty) f(value) else ofNone()
@@ -78,10 +93,6 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
         fmap(ap.value)
     }
 
-    Option<T> filter(Closure<Boolean> f){
-        if(nonEmpty && f(value)) this else ofNone()
-    }
-
     static class Some<T> extends Option<T> {
 
         private T _value
@@ -97,6 +108,23 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
         @Override
         boolean isNonEmpty() { true }
 
+        @Override
+        String toString() { "Some($value)" }
+
+        boolean equals(o) {
+            if (this.is(o)) return true
+            if (getClass() != o.class) return false
+
+            Some some = (Some) o
+
+            if (value != some.value) return false
+
+            return true
+        }
+
+        int hashCode() {
+            return (value != null ? value.hashCode() : 0)
+        }
     }
 
     static class None<T> extends Option<T> {
@@ -115,6 +143,19 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
         @Override
         boolean isNonEmpty() { false }
 
+        @Override
+        String toString() { 'None' }
+
+        boolean equals(o) {
+            if (this.is(o)) return true
+            if (getClass() != o.class) return false
+            return true
+        }
+
+        int hashCode() {
+            return super.hashCode()
+        }
+
     }
 
     static <A> Option<A> of(A value){
@@ -122,12 +163,25 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
         else ofSome(value)
     }
 
+    static <A> Option<A> from(Closure<A> f) {
+        final a = f()
+        a != null ? ofSome(a) : new None()
+    }
+
+
     static <A> Option<A> ofSome(A value){
         assert value != null
         new Some(value)
     }
 
-    static <A> Option<A> ofNone(){
+    static <A> Option<A> ofNone(Class<A> cls = null){
         new None()
     }
+
+    @Deprecated
+    static <T> Option<T> none() { new None<T>() }
+
+    @Deprecated
+    static None none = new None()
+
 }

@@ -9,52 +9,12 @@
 plugins {
     id 'groovy'
     id 'java-library'
+    id 'maven-publish'
 }
 
-group = 'groovy.io'
-version = '0.1'
-
-
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
 
 dependencies {
-    // Use the latest Groovy version for building this library
-    implementation libs.groovy
-
-    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    //implementation libs.guava
-
     implementation libs.gpars
+    implementation libs.slf4j
     implementation project(':gio-ast')
-
-
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    //api libs.commons.math3
-    //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
-
-testing {
-    suites {
-        // Configure the built-in test suite
-        test {
-            // Use Spock test framework
-            useSpock(libs.versions.spock)
-        }
-    }
-}
-
-test {
-    testLogging {
-        showStandardStreams = true
-    }
-}
-
-// Apply a specific Java toolchain to ease working on different environments.
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
 }

@@ -13,6 +13,7 @@ abstract sealed class IO<A> implements Monad<A>
             GIO.Filter,
             GIO.FilterWith,
             GIO.Effect,
+            GIO.Touch,
             GIO.AndThan,
             GIO.OrElse,
             GIO.FailWith,
@@ -23,7 +24,9 @@ abstract sealed class IO<A> implements Monad<A>
             GIO.IOMap,
             GIO.Recover,
             GIO.Fork,
-            GIO.Join {
+            GIO.Join,
+            GIO.IOBracket,
+            GIO.IOEnsure{
 
     def <B> IO<B> flatMap(Function<A, IO<B>> f) {
         new GIO.FlatMap(this, f)
@@ -65,9 +68,14 @@ abstract sealed class IO<A> implements Monad<A>
         new GIO.FailIf(this, f, new Exception(msg))
     }
 
+    def <A> IO<A> touch(Closure f) {
+        new GIO.Touch(this, f)
+    }
+
     def <B> IO<B> andThan(IO<B> other) {
         new GIO.AndThan(this, other)
     }
+
     def <B> IO<B> andThan(Closure<B> f) {
         new GIO.AndThan(this, GIO.attempt(f))
     }
@@ -78,6 +86,10 @@ abstract sealed class IO<A> implements Monad<A>
 
     def <A> IO<A> filterWith(Function<A, IO<Boolean>> f){
         new GIO.FilterWith(this, f)
+    }
+
+    def IO<A> ensure(Closure f) {
+        new GIO.IOEnsure(this, f)
     }
 
     IO<GIO.Fiber<A>> fork(){

@@ -1,0 +1,47 @@
+
+subprojects {
+    apply plugin: 'groovy'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group = 'groovy.io'
+    version = '0.0.1'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies {
+        implementation libs.groovy
+        implementation libs.slf4j
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.toVersion("24")
+    }
+
+    testing {
+        suites {
+            // Configure the built-in test suite
+            test {
+                // Use Spock test framework
+                useSpock(libs.versions.spock)
+            }
+        }
+    }
+
+    test {
+        testLogging {
+            showStandardStreams = true
+        }
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java // Or specific artifacts
+            }
+        }
+    }
+}

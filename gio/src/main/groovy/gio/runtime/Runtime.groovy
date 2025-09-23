@@ -75,6 +75,15 @@ class Runtime implements IRuntime {
                     done.accept(Result.ofOk(io.value))
                 case GIO.Effect ->
                     done.accept(tryOf(io.&apply))
+                case GIO.Touch ->
+                    eval(io.ref) { result ->
+                        switch (result) {
+                            case Result.Ok ->
+                                done.accept(tryOf(io.&apply).flatMap { result })
+                            case Result.Failure ->
+                                done.accept(Result.ofFailure(result.failure))
+                        }
+                    }
                 case GIO.Attempt ->
                     done.accept(tryOf(io.&apply))
                 case GIO.Filter ->

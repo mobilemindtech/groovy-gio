@@ -36,6 +36,10 @@ class GIO {
         })
     }
 
+    static <A> IOBracket<A> bracket(Closure<A> acquire, Closure release){
+        return new IOBracket(acquire, release)
+    }
+
     static <A> IO<A> failure(Throwable throwable) { new Failure(throwable) }
 
     static <A> IO<A> effectAsync(Consumer<Consumer<Result<A>>> asyncTask) {
@@ -83,6 +87,18 @@ class GIO {
             this.f = f
         }
         A apply() { f.get() }
+    }
+
+    static final class Touch<A> extends IO<A>{
+        private Supplier f
+        private IO<A> io
+        Touch(IO<A> io, Supplier f){
+            this.io = io
+            this.f = f
+        }
+        Unit apply() { f.get(); new Unit() }
+
+        IO<A> getRef() { io }
     }
 
     static final class Filter<A> extends IO<A>{
@@ -247,6 +263,39 @@ class GIO {
         Fiber<A> fiber
         Join(Fiber<A> fiber){
             this.fiber = fiber
+        }
+    }
+
+    static final class IOEnsure<A> extends  IO<A> {
+        IO<A> io
+        Closure f
+        IOEnsure(IO<A> io, Closure f){
+            this.io = io
+            this.f = f
+        }
+        void apply() {
+            f()
+        }
+        IO<A> getRef() { io }
+    }
+
+    static final class IOBracket<A> extends IO<A> {
+        private Closure<A> acquire
+        private Closure release
+        IOBracket(Closure<A> acquire, Closure release){
+            assert acquire
+            assert release
+            this.acquire = acquire
+            this.release = release
+        }
+
+        IO<A> use(Closure<IO<A>> f) {
+
+            attempt { acquire() }
+                .flatMap { r ->
+                    f(r).ensure { release(r) }
+                }
+
         }
 
     }
