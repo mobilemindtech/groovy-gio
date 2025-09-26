@@ -304,7 +304,7 @@ abstract sealed class Result<T> permits Ok, Failure {
     static final class Ok<A> extends Result<A> {
         private A value
 
-        private Ok(A value){
+        Ok(A value){
             this.value = value
         }
 
@@ -328,7 +328,7 @@ abstract sealed class Result<T> permits Ok, Failure {
 
         private Throwable throwable
 
-        private Failure(Throwable throwable){
+        Failure(Throwable throwable){
             this.throwable = throwable
         }
 

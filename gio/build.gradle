@@ -14,7 +14,6 @@ plugins {
 
 
 dependencies {
-    implementation libs.gpars
-    implementation libs.slf4j
-    implementation project(':gio-ast')
+    api libs.gpars
+    api project(':gio-ast')
 }

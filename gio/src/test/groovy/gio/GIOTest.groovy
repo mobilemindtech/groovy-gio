@@ -7,7 +7,7 @@ import gio.ast.ForM
 import gio.io.GIO
 import gio.io.IO
 import gio.runtime.GIOApp
-import gio.syntax.GIOExtensions
+import gio.syntax.IOExt
 import spock.lang.Specification
 
 import static gio.syntax.ForM.forM
@@ -51,7 +51,7 @@ class GIOTest extends Specification {
 
         then:
         try{
-            use(GIOExtensions) {
+            use(IOExt) {
                 result.unsafeRun()
             }  == 2
         }catch(Throwable t){

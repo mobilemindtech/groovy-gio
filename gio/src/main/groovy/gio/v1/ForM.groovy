@@ -1,7 +1,6 @@
 package gio.v1
 
 import gio.core.GIOException
-import gio.core.Result
 import gio.io.GIO
 import gio.io.IO
 import gio.runtime.GIOApp
@@ -70,7 +69,7 @@ class ForM {
         f.delegate = this
         f.resolveStrategy = Closure.DELEGATE_FIRST
         def lastIO = removeLastProperty()
-        registerProp(new GIO.Filter(lastIO, f))
+        registerProp(new GIO.IOFilter(lastIO, f))
     }
 
     private IO removeLastProperty(){

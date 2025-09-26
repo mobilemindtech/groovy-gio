@@ -2,7 +2,8 @@ package gio.io
 
 import gio.core.Result
 import gio.core.Unit
-
+import groovy.time.BaseDuration
+import java.util.function.BiFunction
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -11,36 +12,46 @@ class GIO {
 
     static <A> IO<A> IO(Closure<A> f) { attempt(f) }
 
-    static <A> IO<A> attempt(Closure<A> f) { new Attempt(f) }
+    static <A> IO<A> IO(A value) { pure(value) }
 
-    static <A> IO<A> pure(A a) { new Pure(a) }
+    static <A> IO<A> attempt(Closure<A> f) { new IOAttempt(f) }
+
+    static <A> IO<A> pure(A a) { new IOPure(a) }
 
     static IO<Unit> puts(String msg) {
-        new Effect({
+        new IOEffect({
             println(msg)
             Unit.unit
         })
     }
 
     static IO<Unit> puts(Closure<String> f) {
-        new Effect({
+        new IOEffect({
             println(f())
             Unit.unit
         })
     }
 
     static IO<Unit> effect(Closure f) {
-        new Effect({
+        new IOEffect({
             f()
             Unit.unit
         })
     }
 
-    static <A> IOBracket<A> bracket(Closure<A> acquire, Closure release){
-        return new IOBracket(acquire, release)
+    static <A> IOBracket<A> bracket(Supplier<IO<A>> acquire, Function<A, IO<Void>> release){
+        new IOBracket(acquire, release)
     }
 
-    static <A> IO<A> failure(Throwable throwable) { new Failure(throwable) }
+    static <A> IOTransaction<A> transaction(
+        Supplier<IO<A>> acquire,
+        Function<A, IO<Void>> release,
+        Function<A, IO<Void>> onSuccess,
+        BiFunction<A, Throwable, IO<Void>> onError){
+        new IOTransaction(acquire, release, onSuccess, onError)
+    }
+
+    static <A> IO<A> failWith(Throwable throwable) { new IOFailure(throwable ) }
 
     static <A> IO<A> effectAsync(Consumer<Consumer<Result<A>>> asyncTask) {
         new EffectAsync<A>(asyncTask)
@@ -48,8 +59,8 @@ class GIO {
 
     static <A> IO<A> fromResult(Result<A> t) {
         switch (t) {
-            case Result.Ok -> new Attempt(t.&get)
-            case Result.Failure -> new Failure(t.failure)
+            case Result.Ok -> new IOAttempt(t.&get)
+            case Result.Failure -> new IOFailure(t.failure)
         }
     }
 
@@ -71,9 +82,10 @@ class GIO {
 
     // Initial algebra
 
-    static final class Pure<A> extends IO<A> {
+    static final class IOPure<A> extends IO<A> {
         private A pure
-        Pure(A pure){
+
+        IOPure(A pure){
             this.pure = pure
         }
 
@@ -81,30 +93,81 @@ class GIO {
         A getValue() { pure }
     }
 
-    static final class Attempt<A> extends IO<A>{
+    static final class IOAttempt<A> extends IO<A>{
         private Supplier<A> f
-        Attempt(Supplier<A> f){
+
+        IOAttempt(Supplier<A> f){
             this.f = f
         }
         A apply() { f.get() }
     }
 
-    static final class Touch<A> extends IO<A>{
-        private Supplier f
+    static final class IOTap<A> extends IO<A>{
+        private Function<A, IO<Void>> f
         private IO<A> io
-        Touch(IO<A> io, Supplier f){
+        IOTap(IO<A> io, Function<A, IO<Void>> f){
             this.io = io
             this.f = f
         }
-        Unit apply() { f.get(); new Unit() }
+        IO<Void> apply(A value) { f.apply(value) }
 
         IO<A> getRef() { io }
     }
 
-    static final class Filter<A> extends IO<A>{
+    static final class IOFailReplace<A> extends IO<A>{
+        private Throwable throwable
+        IOFailReplace(Throwable throwable) {
+            this.throwable = throwable
+        }
+    }
+
+    static final class IORetry<A> extends IO<A>{
+        final int retryCount
+        final BaseDuration retryInterval
+        final BaseDuration retryTimeout
+        private IO<A> io
+        IORetry(IO<A> io,
+                int retryCount,
+                BaseDuration retryInterval,
+                BaseDuration retryTimeout){
+            this.io = io
+            this.retryCount = retryCount
+            this.retryInterval = retryInterval
+            this.retryTimeout = retryTimeout
+        }
+
+        IO<Boolean> apply(A value) { condition.apply(value) }
+
+        IO<A> getRef() { io }
+    }
+
+    static final class IOTimeout<A> extends IO<A>{
+        final BaseDuration duration
+        private IO<A> io
+        IOTimeout(IO<A> io, BaseDuration duration){
+            this.io = io
+            this.duration = duration
+        }
+
+        IO<A> getRef() { io }
+    }
+
+    static final class IOSleep<A> extends IO<A>{
+        final BaseDuration duration
+        private IO<A> io
+        IOSleep(IO<A> io, BaseDuration duration){
+            this.io = io
+            this.duration = duration
+        }
+
+        IO<A> getRef() { io }
+    }
+
+    static final class IOFilter<A> extends IO<A>{
         private Function<A, Boolean> f
         private IO<A> io
-        Filter(IO<A> io, Function<A, Boolean> f){
+
+        IOFilter(IO<A> io, Function<A, Boolean> f){
             this.io = io
             this.f = f
         }
@@ -113,10 +176,11 @@ class GIO {
         IO<A> getRef() { io }
     }
 
-    static final class FilterWith<A> extends IO<A>{
+    static final class IOFilterWith<A> extends IO<A>{
         private Function<A, IO<Boolean>> f
         private IO<A> io
-        FilterWith(IO<A> io, Function<A, IO<Boolean>> f){
+
+        IOFilterWith(IO<A> io, Function<A, IO<Boolean>> f){
             this.io = io
             this.f = f
         }
@@ -125,18 +189,20 @@ class GIO {
         IO<A> getRef() { io }
     }
 
-    static final class Effect extends IO<Unit> {
+    static final class IOEffect extends IO<Unit> {
         private Closure<Unit> f
-        Effect(Closure<Unit> f){
+
+        IOEffect(Closure<Unit> f){
             this.f = f
         }
         Unit apply() { f.call() }
     }
 
-    static final class AndThan<A, B> extends IO<A> {
+    static final class IOAndThen<A, B> extends IO<A> {
         private IO<A> io
         private IO<B> other
-        AndThan(IO<A> io, IO<B> other){
+
+        IOAndThen(IO<A> io, IO<B> other){
             this.io = io
             this.other = other
         }
@@ -146,10 +212,11 @@ class GIO {
         IO<B> getOtherIO(){ other }
     }
 
-    static final class OrElse<A, B> extends IO<A> {
+    static final class IOOrElse<A, B> extends IO<A> {
         private IO<A> io
         private IO<B> other
-        OrElse(IO<A> io, IO<B> other){
+
+        IOOrElse(IO<A> io, IO<B> other){
             this.io = io
             this.other = other
         }
@@ -159,24 +226,34 @@ class GIO {
         IO<B> getOtherIO(){ other }
     }
 
-    static final class FailWith<A> extends IO<A> {
-        private Closure<? extends Throwable> f
-        FailWith(Closure<? extends Throwable> f){
-            this.f = f
+    static final class IOFailWith<A> extends IO<A> {
+        private IO<A> io
+        final Throwable throwable
+        IOFailWith(IO<A> io, Throwable throwable){
+            this.throwable = throwable
+            this.io = io
         }
-        Throwable apply() { f() }
+        IO<A> getRef(){ io }
+    }
+
+    static final class IOFailure<A> extends IO<A> {
+        final Throwable throwable
+        IOFailure(Throwable throwable){
+            this.throwable = throwable
+        }
+
     }
 
     static final class FailIf<A> extends IO<A> {
         private IO<A> io
-        private Function<A, Boolean> f
+        private Function<A, IO<Boolean>> f
         final Throwable throwable
-        FailIf(IO<A> io, Function<A, Boolean> f, Throwable throwable){
+        FailIf(IO<A> io, Function<A, IO<Boolean>> f, Throwable throwable){
             this.io = io
             this.f = f
             this.throwable = throwable
         }
-        boolean apply(A value) { f.apply(value) }
+        IO<Boolean> apply(A value) { f.apply(value) }
         IO<A> getRef() { io }
     }
 
@@ -190,14 +267,6 @@ class GIO {
         def apply(Consumer<Result<A>> cb) { f.accept(cb) }
     }
 
-    static final class Failure<A> extends IO<A>{
-        private Throwable throwable
-        Failure(Throwable throwable){
-            this.throwable = throwable
-        }
-
-        Throwable getFailure() { throwable }
-    }
 
     // Effect combinators
     static final class FlatMap<A, B> extends IO<B>{
@@ -223,7 +292,7 @@ class GIO {
 
         IO<A> getRef() { io }
 
-        IO<B> apply(A a) { new Pure(f.apply(a)) }
+        IO<B> apply(A a) { new IOPure(f.apply(a)) }
     }
 
     static final class Recover<A> extends IO<A>{
@@ -238,6 +307,115 @@ class GIO {
 
         IO<A> apply(Throwable throwable){
             f.apply(throwable)
+        }
+    }
+
+    static final class IOForeach<A> extends IO<A> {
+        private IO<A> io
+        private Closure f
+        IOForeach(IO<A> io, Closure f){
+            this.io = io
+            this.f = f
+        }
+
+        void apply(A value) {  f(value) }
+
+        IO<A> getRef(){ io }
+    }
+
+    static final class IODebug<A> extends IO<A> {
+        private IO<A> io
+        final String label
+        IODebug(IO<A> io, String label){
+            this.io = io
+            this.label = label
+        }
+
+        IO<A> getRef(){ io }
+    }
+
+    static final class IOCatchAll<A> extends IO<A> {
+        private IO<A> io
+        private Closure f
+        IOCatchAll(IO<A> io, Closure f){
+            this.io = io
+            this.f = f
+        }
+
+        void apply(Throwable err) {  f(err) }
+
+        IO<A> getRef(){ io }
+    }
+
+    static final class IOEnsure<A> extends  IO<A> {
+        IO<A> io
+        Closure<IO<Void>> f
+        IOEnsure(IO<A> io, Closure<IO<Void>> f){
+            this.io = io
+            this.f = f
+        }
+        IO<Void> apply() { f() }
+        IO<A> getRef() { io }
+    }
+
+
+    static final class IOHandlerErrorWith<A> extends  IO<A> {
+        IO<A> io
+        Closure<IO<A>> f
+
+        IOHandlerErrorWith(IO<A> io, Closure<IO<A>> f){
+            this.io = io
+            this.f = f
+        }
+
+        IO<A> apply(Throwable error) { f(error) }
+
+        IO<A> getRef() { io }
+    }
+
+    static final class IOTransaction<A> {
+        private Supplier<IO<A>> acquire
+        private Function<A, IO<Void>> release
+        BiFunction<A, Throwable, IO<Void>> _onError
+        private Function<A, IO<Void>> _onSuccess
+
+        IOTransaction(Supplier<IO<A>> acquire,
+                      Function<A, IO<Void>> release,
+                      Function<A, IO<Void>> onSuccess,
+                      BiFunction<A, Throwable, IO<Void>> onError) {
+            this.acquire = acquire
+            this.release = release
+            this._onSuccess = onSuccess
+            this._onError = onError
+        }
+
+        def <B> IO<B> use(Function<A, IO<B>> f) {
+            bracket(acquire, release) use { tx ->
+                f.apply(tx) flatMap { that ->
+                    this._onSuccess.apply(tx) map {
+                        that
+                    }
+                } handlerErrorWith { Throwable err ->
+                    this._onError.apply(tx, err) failWith err
+                }
+            }
+        }
+    }
+
+    static final class IOBracket<A>{
+        private Supplier<IO<A>> acquire
+        private Function<A, IO<Void>> release
+        IOBracket(Supplier<IO<A>> acquire, Function<A, IO<Void>> release){
+            assert acquire
+            assert release
+            this.acquire = acquire
+            this.release = release
+        }
+
+        def <B> IO<B> use(Function<A, IO<B>> f) {
+            acquire.get() flatMap { r ->
+                f.apply(r) ensure { release.apply(r) }
+            }
         }
     }
 
@@ -264,40 +442,6 @@ class GIO {
         Join(Fiber<A> fiber){
             this.fiber = fiber
         }
-    }
-
-    static final class IOEnsure<A> extends  IO<A> {
-        IO<A> io
-        Closure f
-        IOEnsure(IO<A> io, Closure f){
-            this.io = io
-            this.f = f
-        }
-        void apply() {
-            f()
-        }
-        IO<A> getRef() { io }
-    }
-
-    static final class IOBracket<A> extends IO<A> {
-        private Closure<A> acquire
-        private Closure release
-        IOBracket(Closure<A> acquire, Closure release){
-            assert acquire
-            assert release
-            this.acquire = acquire
-            this.release = release
-        }
-
-        IO<A> use(Closure<IO<A>> f) {
-
-            attempt { acquire() }
-                .flatMap { r ->
-                    f(r).ensure { release(r) }
-                }
-
-        }
-
     }
 }
 

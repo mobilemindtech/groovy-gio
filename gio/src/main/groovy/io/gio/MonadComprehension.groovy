@@ -1,0 +1,127 @@
+package io.gio
+
+import io.gio.monads.Monad
+import io.gio.mcategories.FunctorCategory
+import io.gio.mcategories.MReaderCategory
+import io.gio.mcategories.MMapCategory
+import io.gio.mcategories.MListCategory
+import io.gio.mcategories.MCollectionCategory
+
+class MonadComprehension {
+
+    // choosing the categories to be used on given monads
+
+    private Class category(Collection c) { MCollectionCategory }
+
+    private Class category(Range r) { MListCategory }
+
+    private Class category(Map c) { MMapCategory }
+
+    private Class category(Closure m) { MReaderCategory }
+
+    private Class category(Monad m) { FunctorCategory }
+
+    private Class category(Object o) {
+        throw new IllegalArgumentException("Unsupported monad category: ${o.getClass().name}")
+    }
+
+    // ----- container storage -----
+
+    private Map<String, Closure> propVals = [:]
+    private List<String> propNames = []
+    private List<Closure> guards = []
+    private Map<String, Object> currProp = [:]
+
+    private freeFunctions = []
+
+    // ----- comprehension interface -----
+
+    def takeFrom(Closure vals) { vals }
+
+    def guard(Closure g) { guards << g }
+
+    def yield(Closure yieldStep) { processOuter(propNames, yieldStep) }
+
+    // ----- comprehension implementation -----
+
+    private inContext(String name, value, Closure action) {
+        currProp[name] = value
+        ctx(this, action)
+    }
+
+    private Closure ctx(delegate, Closure action) {
+        action.delegate = delegate
+        action.resolveStrategy = Closure.DELEGATE_ONLY
+        action
+    }
+
+    private processOuter(List<String> names, Closure yieldAction) {
+        def (curr, rest) = [names.head(), names.tail()]
+
+        def currMonad = ctx(this, propVals[curr])()
+        applyOptionalFn(currMonad)
+
+        use(category(currMonad)) {
+            if (rest)
+                currMonad.bind { elem ->
+                    currProp[curr] = elem
+                    processOuter(rest, yieldAction)
+                }
+            else {
+                def container = guards ? // filter if at least one guard is given
+                        currMonad.filter { elem ->
+                            guards.every { inContext(curr, elem, it)() }
+                        } : currMonad
+
+                container.fmap { elem ->
+                    inContext(curr, elem, yieldAction)()
+                }
+            }
+        }
+    }
+
+    /**
+     * Queries for potential calls to unbound functions that may (or may not)
+     * belong to the current monad. If such monad function is found, it is immediately
+     * applied to its arguments.
+     *
+     * @param monad the currently used monad
+     */
+    private applyOptionalFn(monad) {
+        if (freeFunctions) {
+            def fnInfo = freeFunctions.head()
+            /*try {
+             ... to catch the possible exception or not to catch: that is the question */
+            monad."${fnInfo.fn}"(*fnInfo.args)
+//                monad.metaClass.invokeMethod(monad, fnInfo.fn, fnInfo.args)
+            freeFunctions.remove(0) // the function is used up, time for the next one
+            /*}
+            catch (MissingMethodException ignored) {
+                // the method apparently doesn't belong to this monad, maybe next time
+            }*/
+        }
+    }
+
+    // ----- dynamic properties -----
+
+    def propertyMissing(String name) {
+        currProp[name]
+    }
+
+    def propertyMissing(String name, val) {
+        propVals[name] = val
+        propNames << name
+    }
+
+    def methodMissing(String name, args) {
+        freeFunctions << [fn: name, args: args]
+    }
+
+    // ----- runner -----
+
+    static foreach(Closure comprehension) {
+        comprehension.delegate = new MonadComprehension()
+        comprehension.resolveStrategy = Closure.DELEGATE_FIRST
+        comprehension()
+    }
+}
