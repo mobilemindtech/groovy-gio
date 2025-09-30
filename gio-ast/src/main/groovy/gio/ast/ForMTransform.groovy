@@ -1,5 +1,6 @@
 package gio.ast
 
+import groovy.console.ui.AstNodeToScriptVisitor
 import groovy.transform.TupleConstructor
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.expr.*
@@ -38,8 +39,22 @@ class ExpressionItem {
     boolean isGuard() { type == ExpressionType.Guard }
 }
 
+@TupleConstructor
+class FinalizerExpr {
+    ClosureExpression yieldExpr
+    ClosureExpression successfullyExpr
+    ClosureExpression catchAllExpr
+
+    boolean  hasYield() {  yieldExpr != null }
+    boolean  hasSuccessfully() {  successfullyExpr != null }
+    boolean  hasCatchAll() {  catchAllExpr != null }
+}
+
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 class ForMTransform implements ASTTransformation {
+
+    private boolean _printAts
+    private boolean _printAtsAsCode
 
     @Override
     void visit(ASTNode[] nodes, SourceUnit source) {
@@ -49,23 +64,46 @@ class ForMTransform implements ASTTransformation {
         // Se a anotação foi aplicada diretamente à declaração local
         if (annotatedNode instanceof DeclarationExpression) {
             if (hasEnableForM(annotatedNode)) {
+                this._printAts =printAtsEnabled(annotatedNode)
+                this._printAtsAsCode =printAtsAsCodeEnabled(annotatedNode)
                 transformDeclaration((DeclarationExpression) annotatedNode)
             }
 
         } else if (annotatedNode instanceof FieldNode) {
             // Se a anotação foi aplicada a um campo (Field)
             if (hasEnableForM(annotatedNode)) {
+                this._printAts = printAtsEnabled(annotatedNode)
+                this._printAtsAsCode =printAtsAsCodeEnabled(annotatedNode)
                 transformField((FieldNode) annotatedNode)
             }
         }
 
         // Segurança: se veio algo diferente, nada a fazer
     }
+
     private boolean hasEnableForM(AnnotatedNode node) {
         node.getAnnotations()?.any { an ->
             an.classNode?.name == ForM.name
         } ?: false
     }
+
+    private boolean printAtsEnabled(AnnotatedNode node) {
+        node.getAnnotations()?.any { AnnotationNode an ->
+            an.classNode?.name == ForM.name &&
+                an.getMember("printAts") instanceof ConstantExpression &&
+                ((ConstantExpression) an.getMember("printAts")).value == true
+        } ?: false
+    }
+
+    private boolean printAtsAsCodeEnabled(AnnotatedNode node) {
+        node.getAnnotations()?.any { AnnotationNode an ->
+            an.classNode?.name == ForM.name &&
+                an.getMember("printAtsAsCode") instanceof ConstantExpression &&
+                ((ConstantExpression) an.getMember("printAtsAsCode")).value == true
+        } ?: false
+    }
+
+
 
     private void transformField(FieldNode field) {
         def init = field.initialExpression
@@ -96,7 +134,6 @@ class ForMTransform implements ASTTransformation {
         boolean nameLooksLikeForM = name == 'forM'
 
         if (!nameLooksLikeForM) return null
-
 
         // pega closure argumento (primeiro arg)
         if (!(mcall.arguments instanceof ArgumentListExpression)) {
@@ -138,7 +175,8 @@ class ForMTransform implements ASTTransformation {
         BlockStatement block = (BlockStatement) mainClosureExpr.code
 
         List<ExpressionItem> binds = []
-        ClosureExpression yieldExpr = null
+
+        FinalizerExpr finalizerExpr = new FinalizerExpr()
         List<DeclarationExpression> declarations = []
 
         // 1) Identifica declarações anotadas com RHS GIO.pure e yield final
@@ -155,10 +193,20 @@ class ForMTransform implements ASTTransformation {
                 } else if (e instanceof DeclarationExpression){
                     declarations << e
                 }
-            }  else if (e instanceof MethodCallExpression && e.methodAsString == 'yield') {
+            }  else if (e instanceof MethodCallExpression && e.methodAsString in ['yield', 'successfully', 'catchAll']) {
                 def args = e.arguments
                 if (args instanceof ArgumentListExpression && !args.expressions.isEmpty()) {
-                    yieldExpr = args.expressions[0] as ClosureExpression
+                    switch(e.methodAsString){
+                        case 'yield':
+                            finalizerExpr.yieldExpr = args.expressions[0] as ClosureExpression
+                            break
+                        case 'successfully':
+                            finalizerExpr.successfullyExpr = args.expressions[0] as ClosureExpression
+                            break
+                        case 'catchAll':
+                            finalizerExpr.catchAllExpr = args.expressions[0] as ClosureExpression
+                            break
+                    }
                 }
             } else if (e instanceof MethodCallExpression && e.methodAsString == 'guard') {
                 def args = e.arguments
@@ -171,7 +219,7 @@ class ForMTransform implements ASTTransformation {
             }
         }
 
-        if (!yieldExpr || binds.isEmpty()) return null
+        if (binds.isEmpty()) return null
 
         // 2) Cria expressão inicial: pure(yieldExpr) ou map sobre o último bind
         //Expression nested = yieldExpr
@@ -186,7 +234,7 @@ class ForMTransform implements ASTTransformation {
             .collect {
                 (it.expression as DeclarationExpression).variableExpression.accessedVariable
             }
-        def nested = creteNested(mainClosureExpr, binds, yieldExpr, variables, [])
+        def nested = creteNested(mainClosureExpr, binds, finalizerExpr, variables, [])
 
         // 4) Substitui corpo da closure
 
@@ -196,7 +244,14 @@ class ForMTransform implements ASTTransformation {
         )
 
 
-        //printAst mainClosureExpr
+        if(_printAts) {
+            printAst mainClosureExpr
+
+        }
+
+        if(_printAtsAsCode){
+            astToGroovy mainClosureExpr
+        }
 
         mainClosureExpr
 
@@ -204,7 +259,7 @@ class ForMTransform implements ASTTransformation {
 
     Expression creteNested(ClosureExpression mainClosureExpr,
                            List<ExpressionItem> itr,
-                           ClosureExpression yieldExpr,
+                           FinalizerExpr finalizerExpr,
                            List<Variable> variables,
                            List<Parameter> params){
 
@@ -248,31 +303,96 @@ class ForMTransform implements ASTTransformation {
 
         copyVariablesToChildScope(childScope, mainClosureExpr, variables, params)
 
-        BlockStatement closureBlock
+        BlockStatement closureBlock = null
+        BlockStatement yieldBlock = null
 
         if (hasNext) {
-            def nested = creteNested(mainClosureExpr, tail, yieldExpr, variables, params + p)
+            def nested = creteNested(mainClosureExpr, tail, finalizerExpr, variables, params + p)
             closureBlock = new BlockStatement([new ExpressionStatement(nested)], childScope)
         } else {
             // no has next, create yield expression
-            closureBlock = new BlockStatement((yieldExpr.code as BlockStatement).statements, childScope)
+
+            if(finalizerExpr.hasYield())
+                yieldBlock = new BlockStatement((finalizerExpr.yieldExpr.code as BlockStatement).statements, childScope)
+            else
+                yieldBlock = new BlockStatement([
+                        new ExpressionStatement(
+                            new ConstructorCallExpression(
+                                ClassHelper.make("gio.core.Unit"),
+                                ArgumentListExpression.EMPTY_ARGUMENTS
+                            )
+                        )],
+                    childScope
+                )
+
         }
 
-        // Closure interna { varName -> nested }
-        ClosureExpression innerClosure = new ClosureExpression(
-            [p] as Parameter[],
-            closureBlock
-        )
+        MethodCallExpression chainedCall = null
 
-        innerClosure.variableScope = childScope
+        if(closureBlock != null) {
+            // Closure interna { varName -> nested }
+            ClosureExpression innerClosure = new ClosureExpression(
+                [p] as Parameter[],
+                closureBlock
+            )
 
-        // Cria MethodCallExpression usando tmpVar como alvo
-        MethodCallExpression chainedCall = new MethodCallExpression(
-            rewriteVariables(mainClosureExpr, rhs, [:], variables, params),
-            hasNext ? "flatMap" : "map",
-            new ArgumentListExpression(innerClosure)
-        )
+            innerClosure.variableScope = childScope
 
+            // Cria MethodCallExpression usando tmpVar como alvo
+            chainedCall = new MethodCallExpression(
+                rhs,
+                hasNext ? "flatMap" : "map",
+                new ArgumentListExpression(innerClosure)
+            )
+        } else {
+
+            // o parâmetro p precisa ser ligado em successfully ou então em yield
+
+            if (finalizerExpr.hasSuccessfully()) {
+                def codeBlock = finalizerExpr.successfullyExpr.code as BlockStatement
+                ClosureExpression innerExpr = new ClosureExpression(
+                    [p] as Parameter[],
+                    new BlockStatement(codeBlock.statements, childScope)
+                )
+                innerExpr.variableScope = childScope
+                chainedCall = new MethodCallExpression(
+                    rhs,
+                    "foreach",
+                    new ArgumentListExpression(innerExpr)
+                )
+            }
+
+            if (finalizerExpr.hasCatchAll()) {
+                def codeBlock = finalizerExpr.catchAllExpr.code as BlockStatement
+                ClosureExpression innerExpr = new ClosureExpression(
+                    [] as Parameter[],
+                    new BlockStatement(codeBlock.statements, childScope)
+                )
+                innerExpr.variableScope = childScope
+                chainedCall = new MethodCallExpression(
+                    chainedCall ?: rhs,
+                    "catchAll",
+                    new ArgumentListExpression(innerExpr)
+                )
+            }
+
+            // se tiver hasSuccessfully, então o parâmetro p já foi ligado
+            // se não precisa ser ligado
+            ClosureExpression innerClosure = new ClosureExpression(
+                (finalizerExpr.hasSuccessfully() ? [] : [p]) as Parameter[],
+                yieldBlock
+            )
+
+            innerClosure.variableScope = childScope
+
+            // Cria MethodCallExpression usando tmpVar como alvo
+            chainedCall = new MethodCallExpression(
+                rewriteVariables(mainClosureExpr, chainedCall ?: rhs, [:], variables, params),
+                hasNext ? "flatMap" : "map",
+                new ArgumentListExpression(innerClosure)
+            )
+
+        }
 
         if(guards){
             // cria todos os guards subsequentes (até que encontre um IO) de uma só vez
@@ -451,4 +571,12 @@ class ForMTransform implements ASTTransformation {
         }
     }
 
+    static void astToGroovy(ASTNode node) {
+        def sw = new StringWriter()
+        def pw = new PrintWriter(sw)
+        def visitor = new AstNodeToScriptVisitor(pw)
+        node.visit(visitor)
+        pw.flush()
+        println sw.toString()
+    }
 }

@@ -46,59 +46,59 @@ class IOExt {
     // utils
 
     static BaseDuration getMilliseconds(Integer self) {
-        use(TimeCategory) { self.milliseconds }
+        TimeCategory.getMilliseconds(self)
     }
 
     static BaseDuration getMillisecond(Integer self) {
-        use(TimeCategory) { self.millisecond }
+        TimeCategory.getMillisecond(self)
     }
 
     static BaseDuration getSeconds(Integer self) {
-        use(TimeCategory) { self.seconds }
+        TimeCategory.getSeconds(self)
     }
 
     static BaseDuration getSecond(Integer self) {
-        use(TimeCategory) { self.second }
+        TimeCategory.getSecond(self)
     }
 
     static BaseDuration getMinutes(Integer self) {
-        use(TimeCategory) { self.minutes }
+        TimeCategory.getMinutes(self)
     }
 
     static BaseDuration getMinute(Integer self) {
-        use(TimeCategory) { self.minute }
+        TimeCategory.getMinute(self)
     }
 
     static BaseDuration getHours(Integer self) {
-        use(TimeCategory) { self.hours }
+        TimeCategory.getHours(self)
     }
 
     static BaseDuration getHour(Integer self) {
-        use(TimeCategory) { self.hour }
+        TimeCategory.getHour(self)
     }
 
     static BaseDuration getDays(Integer self) {
-        use(TimeCategory) { self.days }
+        TimeCategory.getDays(self)
     }
 
     static BaseDuration getDay(Integer self) {
-        use(TimeCategory) { self.day }
+        TimeCategory.getDay(self)
     }
 
     static BaseDuration getMonths(Integer self) {
-        use(TimeCategory) { self.months }
+        TimeCategory.getMonths(self)
     }
 
     static BaseDuration getMonth(Integer self) {
-        use(TimeCategory) { self.month }
+        TimeCategory.getMonth(self)
     }
 
     static BaseDuration getYears(Integer self) {
-        use(TimeCategory) { self.years }
+        TimeCategory.getYears(self)
     }
 
     static BaseDuration getYear(Integer self) {
-        use(TimeCategory) { self.year }
+        TimeCategory.getYear(self)
     }
 
 }

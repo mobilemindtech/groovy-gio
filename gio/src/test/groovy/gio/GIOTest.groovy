@@ -14,15 +14,16 @@ import static gio.syntax.ForM.forM
 
 class SequenceEffects implements GIOApp<Integer> {
     IO<Integer> run() {
-        GIO.pure (1).flatMap {
+        GIO.pure(1) flatMap {
             value -> GIO.pure(value + 1)
         }
     }
 }
 
 class GIOTest extends Specification {
-    /*
-    def "gio exec return 1"() {
+
+
+    def "gio exec return 2"() {
         setup:
         def app = new SequenceEffects()
 
@@ -31,14 +32,15 @@ class GIOTest extends Specification {
 
         then:
         result == 2
-    }*/
+    }
+
 
     def "gio forM"() {
         setup:
 
 
         when:
-            @ForM
+            @ForM()
             def result = forM(Integer) {
                 GIO.puts("start")
                 x = GIO.pure(1)
@@ -50,28 +52,26 @@ class GIOTest extends Specification {
 
 
         then:
-        try{
-            use(IOExt) {
-                result.unsafeRun()
-            }  == 2
-        }catch(Throwable t){
-            t.printStackTrace()
-        }
+        use(IOExt) {
+            result.unsafeRun()
+        }  == 2
     }
-/*
+
+
     def "gio forM IO"() {
         setup:
-
-
         when:
+        @ForM()
         def result = forM(Integer) {
-            x = GIO.pure(1) >> { it + 2 }
-            yield { x }
+            x = GIO.pure(1) map { it + 2 }
+            yield { x+1 }
         }
 
         then:
-        result.ok && result.value == 3
+        use(IOExt) {
+            result.unsafeRun()
+        }  == 4
     }
 
- */
+
 }

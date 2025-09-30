@@ -7,10 +7,10 @@ trait GIOApp<A> {
     abstract IO<A> run()
 
     A unsafeRun() {
-        new Runtime().unsafeRunSync(run()).get()
+        new Runtime().unsafeRun(run()).get()
     }
 
     Result<A> safeRun() {
-        new Runtime().unsafeRunSync(run())
+        new Runtime().unsafeRun(run())
     }
 }

@@ -29,4 +29,7 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass
 @Retention(RetentionPolicy.SOURCE)
 @Target([ElementType.LOCAL_VARIABLE, ElementType.FIELD, ElementType.TYPE_USE])
 @GroovyASTTransformationClass(classes = ForMTransform)
-@interface ForM {}
+@interface ForM {
+    boolean printAts() default false;
+    boolean printAtsAsCode() default false;
+}

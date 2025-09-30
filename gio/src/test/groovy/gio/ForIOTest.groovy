@@ -3,6 +3,7 @@ package gio
 import gio.ast.ForM
 import gio.core.GIORetryException
 import gio.core.GIOTimeoutException
+import gio.core.Unit
 import gio.io.GIO
 import gio.syntax.IOExt
 import spock.lang.Specification
@@ -65,6 +66,7 @@ class ForIOTest extends Specification {
         then:
         x == 2
     }
+
 
     def "test transaction with failure"() {
         setup:
@@ -151,6 +153,28 @@ class ForIOTest extends Specification {
         result.value == 0
     }
 
+    def "test forM with successfully"() {
+        setup:
+        def j = 1
+        @ForM()
+        def prog = forM {
+            def k = 1
+            x = GIO.pure(5)
+            y = GIO.pure(5)
+            z = GIO.pure(x + y)
 
+            successfully {
+                println "successfully x=$x, y=$y, k=$k, z=$z, j=$j!"
+            }
+
+            catchAll {
+                println "error: $it.message"
+            }
+        }
+        when:
+        def x = use(IOExt) { prog.unsafeRun() }
+        then:
+        x.getClass().name == Unit.name
+    }
 
 }

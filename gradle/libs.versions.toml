@@ -9,5 +9,6 @@ slf4j = "1.7.36"
 
 [libraries]
 groovy = { module = "org.apache.groovy:groovy", version.ref = "groovy" }
+groovy-console = { module = "org.apache.groovy:groovy-console" , version.ref = "groovy"}
 gpars = { module = "org.codehaus.gpars:gpars", version.ref = "gpars"}
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j"}
