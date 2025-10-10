@@ -103,10 +103,20 @@ abstract class Result<T> {
         else value
     }
 
+    Result<T> throwIfNull(String msg = "value can't be null") {
+        if (isOk() && value == null) ofFailure(msg)
+        else this
+    }
+
+    Result<T> throwIf(String msg, Closure<Boolean> c) {
+        if (isOk() && c.call(value)) ofFailure(msg)
+        else this
+    }
+
     /**
      * Fail with a new exception or nothing. Executes only current state is failure
      * <code>
-     *     failWith { ex ->
+     *     rethrowWithMaybe { ex ->
      *          if(ex == ?)
      *              throw new MyCustomException(ex)
      *     }
