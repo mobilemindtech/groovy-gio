@@ -12,8 +12,21 @@ plugins {
     id 'maven-publish'
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
 
 dependencies {
     implementation project(':gio-ast')
     implementation libs.gpars
+    implementation libs.groovy
+    implementation libs.groovy.console
+    implementation libs.slf4j
 }
+
+java {
+    java.sourceCompatibility = JavaVersion.VERSION_24
+}
+

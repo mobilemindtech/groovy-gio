@@ -12,14 +12,8 @@ subprojects {
         mavenLocal()
     }
 
-    dependencies {
-        api libs.groovy
-        api libs.groovy.console
-        api libs.slf4j
-    }
-
     java {
-        sourceCompatibility = JavaVersion.toVersion("24")
+        java.sourceCompatibility = JavaVersion.VERSION_24
     }
 
     testing {
