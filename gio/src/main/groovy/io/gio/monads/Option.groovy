@@ -47,9 +47,10 @@ abstract class Option<A> implements Monad<Option<A>> {
         else null
     }
 
-    Option<A> resolve(Closure someCb, Closure noneCb) {
+    Option<A> resolve(Closure someCb, Closure noneCb, Closure always = null) {
         if (isSome()) someCb()
         else noneCb()
+        always?.call()
         this
     }
 
