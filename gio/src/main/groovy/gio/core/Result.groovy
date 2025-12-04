@@ -165,6 +165,21 @@ abstract sealed class Result<T> permits Ok, Failure {
         this
     }
 
+    Result<T> throwIfNull(String msg = "value can't be null") {
+        if (isOk() && value == null) ofFailure(msg)
+        else this
+    }
+
+    Result<T> throwIfEmpty(String msg = "value can't be empty") {
+        if (isOk() && !value) ofFailure(msg)
+        else this
+    }
+
+    Result<T> throwIf(String msg, Closure<Boolean> c) {
+        if (isOk() && c.call(value)) ofFailure(msg)
+        else this
+    }
+
     /**
      * Fail with a new exception or nothing. Executes only current state is Ok
      * <code>

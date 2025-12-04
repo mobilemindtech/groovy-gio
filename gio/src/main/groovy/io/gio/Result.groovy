@@ -108,6 +108,11 @@ abstract class Result<T> {
         else this
     }
 
+    Result<T> throwIfEmpty(String msg = "value can't be empty") {
+        if (isOk() && !value) ofFailure(msg)
+        else this
+    }
+
     Result<T> throwIf(String msg, Closure<Boolean> c) {
         if (isOk() && c.call(value)) ofFailure(msg)
         else this
