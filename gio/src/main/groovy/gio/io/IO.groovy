@@ -80,8 +80,16 @@ abstract sealed class IO<A> implements Monad<A>
         new GIO.FailIf(this, f, exception)
     }
 
-    IO<A> failIf(Function<A, Boolean> f, String msg) {
+    IO<A> failIf(String msg, Function<A, Boolean> f) {
         new GIO.FailIf(this, f, new Exception(msg))
+    }
+
+    IO<A> failIfNull(String msg) {
+        new GIO.FailIf(this, {it == null}, new Exception(msg))
+    }
+
+    IO<A> failIfEmpty(String msg) {
+        new GIO.FailIf(this, {!it}, new Exception(msg))
     }
 
     IO<A> tap(Function<A, IO<Void>> f) {

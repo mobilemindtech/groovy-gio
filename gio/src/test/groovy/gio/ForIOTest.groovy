@@ -127,7 +127,7 @@ class ForIOTest extends Specification {
         def prog = use(IOExt){
             IO { i-- }
                 .tap { println(it) }
-                .failIf(x -> IO(x != 0),  "retry error")
+                .failIf("retry error", x -> IO(x != 0))
                 .retry(3, 1.second, 1.second)
         }
         when:
@@ -143,7 +143,7 @@ class ForIOTest extends Specification {
         def prog = use(IOExt){
             IO { --i }
                 .tap { println(it) }
-                .failIf(x -> IO(x != 0),  "retry error")
+                .failIf("retry error", x -> IO(x != 0))
                 .retry(3, 1.second, 1.second)
         }
         when:

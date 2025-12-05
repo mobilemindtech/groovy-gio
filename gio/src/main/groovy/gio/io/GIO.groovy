@@ -18,6 +18,8 @@ class GIO {
 
     static <A> IO<A> pure(A a) { new IOPure(a) }
 
+    static <A> IO<A> pureWith(Closure<A> f) { new IOPure(f()) }
+
     static IO<Unit> puts(String msg) {
         new IOEffect({
             println(msg)
@@ -52,6 +54,8 @@ class GIO {
     }
 
     static <A> IO<A> failWith(Throwable throwable) { new IOFailure(throwable ) }
+
+    static <A> IO<A> failWith(String message) { new IOFailure(new Exception(message)) }
 
     static <A> IO<A> effectAsync(Consumer<Consumer<Result<A>>> asyncTask) {
         new EffectAsync<A>(asyncTask)

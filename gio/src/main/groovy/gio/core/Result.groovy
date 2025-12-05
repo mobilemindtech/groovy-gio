@@ -289,6 +289,10 @@ abstract sealed class Result<T> permits Ok, Failure {
         other
     }
 
+    def <B> Result<B> cast() {
+        this as Result<B>
+    }
+
 
     static <A> Result<A> of(Closure<A> f){
         try {
@@ -361,6 +365,10 @@ abstract sealed class Result<T> permits Ok, Failure {
 
         @Override
         String toString() { "Failure($failure.message)" }
+    }
+
+    static String getExceptionMessage(Throwable t) {
+        t.message ?: t.cause?.message ?: t.class.name
     }
 }
 
