@@ -45,7 +45,7 @@ abstract sealed class Option<T> implements Monad<T> permits Some, None  {
     }
 
     Option<T> ifEmpty(Closure f){
-        if(empty) f(value)
+        if(empty) f()
         this
     }
 
