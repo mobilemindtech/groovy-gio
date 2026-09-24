@@ -110,8 +110,10 @@ class Runtime implements IRuntime {
             switch (io) {
                 case GIO.IOPure ->
                     done.accept(Result.ofOk(io.value))
+                // Groovy 5: `io.&apply` resolves against the declared type IO (no apply()) and throws
+                // MissingMethodException; a closure call dispatches on the runtime type
                 case GIO.IOEffect ->
-                    done.accept(tryOf(io.&apply))
+                    done.accept(tryOf { io.apply() })
                 case GIO.IOTap ->
                     eval(io.ref) { result ->
                         switch (result) {
@@ -129,7 +131,7 @@ class Runtime implements IRuntime {
                         }
                     }
                 case GIO.IOAttempt ->
-                    done.accept(tryOf(io.&apply))
+                    done.accept(tryOf { io.apply() })
                 case GIO.IOFilter ->
                     eval(io.ref) { result ->
                         switch (result) {
