@@ -246,7 +246,7 @@ abstract sealed class Result<T> permits Ok, Failure {
         try {
             ofOk(f(value))
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             ofFailure(e)
         }
     }
@@ -279,7 +279,7 @@ abstract sealed class Result<T> permits Ok, Failure {
         try {
             f(value)
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             ofFailure(e)
         }
     }
