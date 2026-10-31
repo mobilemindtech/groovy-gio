@@ -35,6 +35,7 @@ abstract sealed class Result<T> permits Ok, Failure {
         else throw failure
     }
 
+
     /**
      * Get value or null
      * @return
