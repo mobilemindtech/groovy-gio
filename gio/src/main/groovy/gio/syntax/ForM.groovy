@@ -7,14 +7,14 @@ import groovy.transform.stc.SimpleType
 
 class ForM {
 
-    static <A> IO<A> forM(Class<A> ignore, @DelegatesTo(value=Scope<A>, strategy=Closure.DELEGATE_FIRST) Closure<IO<A>> c) {
+    static <A> IO<A> forM(Class<A> ignore, @DelegatesTo(value=Scope, strategy=Closure.DELEGATE_FIRST) Closure<IO<A>> c) {
         def scope = new Scope()
         c.delegate = scope
         c.resolveStrategy = Closure.DELEGATE_FIRST
         c.call()
     }
 
-    static <A> IO<A> forM(@DelegatesTo(value=Scope<A>, strategy=Closure.DELEGATE_FIRST) Closure c) {
+    static <A> IO<A> forM(@DelegatesTo(value=Scope, strategy=Closure.DELEGATE_FIRST) Closure c) {
         def scope = new Scope()
         c.delegate = scope
         c.resolveStrategy = Closure.DELEGATE_FIRST
